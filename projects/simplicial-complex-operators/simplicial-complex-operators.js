@@ -26,21 +26,26 @@ class SimplicialComplexOperators {
          */
         assignElementIndices(mesh) {
                 // TODO
-                let vertexIndex=new Array();
-                let edgeIndex=new Array;
-                let faceIndex=[];
-                for(let i=0;i<mesh.vertices.length;i++)
-                {
-                        vertexIndex[i]=i;
-                }
-                for(let j=0;j<mesh.edges.length;j++)
-                {
-                        edgeIndex[j]=j;
-                }
-                for(let k=0;k<mesh.faces.length;k++)
-                {
-                        edgeIndex[k]=k;
-                }
+                mesh.indexElements(mesh);
+                // let vertexIndex={};
+                // let edgeIndex={};
+                // let faceIndex={};
+                // let i=0;
+                // let j=0;
+                // let k=0;
+                // this.mesh=mesh;
+                // for(let vertices of this.mesh.vertices)
+                // {
+                //         vertexIndex[vertices]=i++;
+                // }
+                // for(let edges of this.mesh.edges)
+                // {
+                //         edgeIndex[edges]=j++;
+                // }
+                // for(let faces of this.mesh.faces)
+                // {
+                //         faceIndex[faces]=k++;
+                // }
         }
 
         /** Returns the vertex-edge adjacency matrix of the given mesh.
@@ -50,7 +55,15 @@ class SimplicialComplexOperators {
          */
         buildVertexEdgeAdjacencyMatrix(mesh) {
                 // TODO
-        }
+                let edgeVertexTriplet = new Triplet(mesh.edges.length,mesh.vertices.length);
+                for(let edge of this.mesh.edges)
+                {
+                        edgeVertexTriplet.addEntry(1,edge.index,edge.halfedge.vertex.index);
+                        edgeVertexTriplet.addEntry(1,edge.index,edge.halfedge.twin.vertex.index);
+                };
+                let edgeVertexMatrix=SparseMatrix.fromTriplet(edgeVertexTriplet);
+                return edgeVertexMatrix;
+        }       
 
         /** Returns the edge-face adjacency matrix.
          * @method module:Projects.SimplicialComplexOperators#buildEdgeFaceAdjacencyMatrix
@@ -59,6 +72,17 @@ class SimplicialComplexOperators {
          */
         buildEdgeFaceAdjacencyMatrix(mesh) {
                 // TODO
+                let faceEdgeTriplet = new Triplet(mesh.faces.length,mesh.edges.length);
+                for(let faces of this.mesh.faces)
+                {
+                        for (let edges of faces.adjacentEdges())
+                        {
+                                faceEdgeTriplet.addEntry(1,faces.index,edges.index,);                                
+                        }
+                        
+                }
+                let faceEdgeMatrix=SparseMatrix.fromTriplet(faceEdgeTriplet)
+                return faceEdgeMatrix;
         }
 
         /** Returns a column vector representing the vertices of the
@@ -70,6 +94,13 @@ class SimplicialComplexOperators {
          */
         buildVertexVector(subset) {
                 // TODO
+                let V=DenseMatrix.zeros(mesh.vertices.length,1)
+                for (let vertices of this.subset.vertices)
+                {
+                        V[vertices.index-1]=1;
+                }
+                return V;
+                
         }
 
         /** Returns a column vector representing the edges of the
@@ -81,6 +112,12 @@ class SimplicialComplexOperators {
          */
         buildEdgeVector(subset) {
                 // TODO
+                let V=DenseMatrix.zeros(mesh.edges.length,1)
+                for (let edges of this.subset.edges)
+                {
+                        V[edges.index-1]=1;
+                }
+                return V;
         }
 
         /** Returns a column vector representing the faces of the
@@ -92,6 +129,12 @@ class SimplicialComplexOperators {
          */
         buildFaceVector(subset) {
                 // TODO
+                let V=DenseMatrix.zeros(mesh.faces.length,1)
+                for (let faces of this.subset.faces)
+                {
+                        V[faces.index-1]=1;
+                }
+                return V;
         }
 
         /** Returns the star of a subset.
@@ -101,8 +144,25 @@ class SimplicialComplexOperators {
          */
         star(subset) {
                 // TODO
-
-                return subset; // placeholder
+                //对于这个子集的所有点，线和面,找到包含它的所有单形
+                let starset=MeshSubset.deepCopy(subset);
+                for (let vertex of subset.vertices)
+                {
+                        starset.addEdges(vertex.adjacentEdges)
+                        starset.addFaces(vertex.adjacentFaces)
+                        //find indexmatrix
+                        // A0[vertices.index]
+                        // starset.addEdges(edges[index]);
+                } ;
+                for (let face of subset.faces)
+                {
+                        //starset.addEdges(edge.vertex)
+                        starset.addFaces(face.adjacentFaces)
+                        //find indexmatrix
+                        // A0[vertices.index]
+                        // starset.addEdges(edges[index]);
+                } ;
+                return starset; // placeholder
         }
 
         /** Returns the closure of a subset.
