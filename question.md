@@ -13,3 +13,7 @@ answer: undefined 在 setup.js中
 所有的complex都包含在度数为k的复形（complex)上
 
 # Q3:关于buildVertexVector（）cannot convert "undefined" to int 的错误
+solution1:看看 geometry中 matrix 是怎么用的。
+*没有加algebra
+看一看Solution中,DenseMatrix是如何应用的
+SparseMatrix是用Triplet建立的。
