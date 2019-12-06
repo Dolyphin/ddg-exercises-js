@@ -17,3 +17,13 @@ solution1:看看 geometry中 matrix 是怎么用的。
 *没有加algebra
 看一看Solution中,DenseMatrix是如何应用的
 SparseMatrix是用Triplet建立的。
+
+在direction-field-design中有
+
+solution将indexElement()的参数去掉
+
+采用 数组引用的方式vertexIndex[vertices]比较好
+# Q4:如何实现Star
+首先要知道 Star的含义 St(i)就是指i的邻域
+* 分步骤进行实现
+** 首先假设这只是一个点
