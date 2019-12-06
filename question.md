@@ -11,3 +11,5 @@ answer: undefined 在 setup.js中
 什么样的集合能够被称为complex呢？看Slide和notes吧。cl(Complex)=Complex
 ## isPureComplex呢？
 所有的complex都包含在度数为k的复形（complex)上
+
+# Q3:关于buildVertexVector（）cannot convert "undefined" to int 的错误
