@@ -27,3 +27,7 @@ solution将indexElement()的参数去掉
 首先要知道 Star的含义 St(i)就是指i的邻域
 * 分步骤进行实现
 ** 首先假设这只是一个点
+
+## 实现了点的star，但是edge和face的star是什么呢？
+查一下，notes
+# Q5 Clousure是否有构造性的编法
