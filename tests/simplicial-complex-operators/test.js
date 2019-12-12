@@ -187,7 +187,14 @@ describe("Simplicial Complex Operators", function() {
                         chai.assert(binaryEntries, "You put an entry in your face vector which is neither 0 nor 1.\n");
                 });
         });
-
+        describe("nonZeroIndex",function(){
+                it("returns [0,1,2,3] for input of DenseMatrix.ones(4,1)",function() {
+                        let columeVector=DenseMatrix.ones(4,1);
+                        let simplicialComplexOperators = new SimplicialComplexOperators(mesh);
+                        let nonZeroIndexTry=simplicialComplexOperators.nonZeroIndex(columeVector);
+                        chai.assert(nonZeroIndexTry, [0,1,2,3]);
+                });
+        });
         describe("Boundary", function() {
                 it("Squares to zero", function() {
                         let selectedSimplices = new MeshSubset();

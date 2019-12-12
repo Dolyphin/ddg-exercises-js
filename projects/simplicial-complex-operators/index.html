@@ -50,6 +50,22 @@
 	<script src="../../core/mesh-subset.js"></script>
 	<script src="simplicial-complex-operators.js"></script>
 	<script src="setup.js"></script>
+	<script type="text/javascript">
+	let debug=false;
+	//let selectedSimplices=new Mesh;
+	//let bVV=new SimplicialComplexOperators(selectedSimplices);
+	if (debug==true) {
+		a=DenseMatrix.ones(4,1);
+		a.set(3,1,0);
+		alert(a.get(1,0));
+		//let bVV=simplicialComplexOperators.buildVertexVector(selectedSimplices);
+		//alert(bVV.get(0,0));
+		// let mVV=simplicialComplexOperators.buildVertexVector(mesh);
+		// alert(mVV.get(0,0));
+	}
+
+
+	</script>
 </body>
 
 </html>

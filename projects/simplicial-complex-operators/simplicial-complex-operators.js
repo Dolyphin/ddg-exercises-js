@@ -15,37 +15,18 @@ class SimplicialComplexOperators {
         constructor(mesh) {
                 this.mesh = mesh;
                 this.assignElementIndices(this.mesh);
-
                 this.A0 = this.buildVertexEdgeAdjacencyMatrix(this.mesh);
                 this.A1 = this.buildEdgeFaceAdjacencyMatrix(this.mesh);
         }
+        //注意这里面所有矩阵的命名规则是列行，比如A0叫VertexEdgeAdjacencyMatrix为Edge*Vertex
 
         /** Assigns indices to the input mesh's vertices, edges, and faces
          * @method module:Projects.SimplicialComplexOperators#assignElementIndices
          * @param {module:Core.Mesh} mesh The input mesh which we index.
          */
         assignElementIndices(mesh) {
-                // TODO
-                mesh.indexElements(mesh);
-                // let vertexIndex={};
-                // let edgeIndex={};
-                // let faceIndex={};
-                // let i=0;
-                // let j=0;
-                // let k=0;
-                // this.mesh=mesh;
-                // for(let vertices of this.mesh.vertices)
-                // {
-                //         vertexIndex[vertices]=i++;
-                // }
-                // for(let edges of this.mesh.edges)
-                // {
-                //         edgeIndex[edges]=j++;
-                // }
-                // for(let faces of this.mesh.faces)
-                // {
-                //         faceIndex[faces]=k++;
-                // }
+                // TODO                
+                mesh.indexElements();
         }
 
         /** Returns the vertex-edge adjacency matrix of the given mesh.
@@ -94,12 +75,16 @@ class SimplicialComplexOperators {
          */
         buildVertexVector(subset) {
                 // TODO
-                let V=DenseMatrix.zeros(mesh.vertices.length,1)
-                for (let vertices of this.subset.vertices)
+                let vertexVector = DenseMatrix.zeros(this.mesh.vertices.length,1);
+                //alert(vertexVector.get(0,0));
+                let vertexIndex=indexElements(this.mesh.vertices);
+                for (let vertices of subset.vertices)
                 {
-                        V[vertices.index-1]=1;
+                        //vertexVector[this.mesh.vertices]
+                        vertexVector.set(1, vertexIndex[vertices], 0);
+                        //alert(vertexVector);
                 }
-                return V;
+                return vertexVector;
                 
         }
 
@@ -112,12 +97,14 @@ class SimplicialComplexOperators {
          */
         buildEdgeVector(subset) {
                 // TODO
-                let V=DenseMatrix.zeros(mesh.edges.length,1)
-                for (let edges of this.subset.edges)
+                let edgeVector=DenseMatrix.zeros(this.mesh.edges.length,1); 
+                let edgeIndex=indexElements(this.mesh.edges);      
+                for (let edges of subset.edges)
                 {
-                        V[edges.index-1]=1;
+                        edgeVector.set(1,edgeIndex[edges],0);
+                        //alert(edgeVector.get(edges.index,0));
                 }
-                return V;
+                return edgeVector;
         }
 
         /** Returns a column vector representing the faces of the
@@ -129,14 +116,31 @@ class SimplicialComplexOperators {
          */
         buildFaceVector(subset) {
                 // TODO
-                let V=DenseMatrix.zeros(mesh.faces.length,1)
-                for (let faces of this.subset.faces)
+                let faceVector=DenseMatrix.zeros(this.mesh.faces.length,1);
+                let faceIndex=indexElements(this.mesh.faces)
+                for (let faces of subset.faces)
                 {
-                        V[faces.index-1]=1;
+                        faceVector.set(1,faceIndex[faces],0);
                 }
-                return V;
+                return faceVector;
         }
+        /** Returns an array of the non-zero index of a vertor（this is a function I added)
+        * @method module:Projects.SimplicialComplexOperators#nonZeroIndex
+        * @param n X 1 denseMatrix
+        * @returns an array containing 
+        */
+        nonZeroIndex(columnVector) {
+                let nonZeroIndex=[];
+                for (let idj=0;idj<columnVector.nRows();idj++) {
+                        if (columnVector.get(idj,0)>0) {
+                                nonZeroIndex.push(idj);
+                                //alert(idj);                                
+                        }
+                }
+                //alert(nonZeroIndex);
+                return nonZeroIndex;
 
+        }
         /** Returns the star of a subset.
          * @method module:Projects.SimplicialComplexOperators#star
          * @param {module:Core.MeshSubset} subset A subset of our mesh.
@@ -145,24 +149,27 @@ class SimplicialComplexOperators {
         star(subset) {
                 // TODO
                 //对于这个子集的所有点，线和面,找到包含它的所有单形
-                let starset=MeshSubset.deepCopy(subset);
-                for (let vertex of subset.vertices)
-                {
-                        starset.addEdges(vertex.adjacentEdges)
-                        starset.addFaces(vertex.adjacentFaces)
-                        //find indexmatrix
-                        // A0[vertices.index]
-                        // starset.addEdges(edges[index]);
-                } ;
-                for (let face of subset.faces)
-                {
-                        //starset.addEdges(edge.vertex)
-                        starset.addFaces(face.adjacentFaces)
-                        //find indexmatrix
-                        // A0[vertices.index]
-                        // starset.addEdges(edges[index]);
-                } ;
-                return starset; // placeholder
+                let vertexVector=this.buildVertexVector(subset);
+                let edgeVector=this.buildEdgeVector(subset);
+                let faceVector=this.buildFaceVector(subset);
+                // //jalert(vertexVector[vertexVector.length,1]);
+                // let indexToVertex = new Map(); 
+                // //let starset=MeshSubset.deepCopy(subset);
+                let vertexAdjancentEdge=this.A0.timesDense(vertexVector);
+                let vertexAdjancentFace=this.A1.timesDense(vertexAdjancentEdge);
+                //let edgeAdjancentVertex=this.A0.transpose().timesDense(edgeVector);
+                let edgeAdjancentFace=this.A1.timesDense(edgeVector);
+                //let faceAdjancentVertex=(this.A1.timesSparse(this.A0)).transpose().timesDense(faceVector);
+                //let faceAdjancentEdge=this.A1.transpose().timesDense(faceVector);
+                //let starVerticesIndices=new Array();                
+                //subset.addVertices(this.nonZeroIndex(edgeAdjancentVertex));
+                //subset.addVertices(this.nonZeroIndex(faceAdjancentVertex));
+                subset.addEdges(this.nonZeroIndex(vertexAdjancentEdge));
+                //subset.addEdges(this.nonZeroIndex(faceAdjancentEdge));
+                subset.addFaces(this.nonZeroIndex(vertexAdjancentFace));
+                subset.addFaces(this.nonZeroIndex(edgeAdjancentFace));        
+
+                return subset; // placeholder
         }
 
         /** Returns the closure of a subset.
@@ -172,7 +179,32 @@ class SimplicialComplexOperators {
          */
         closure(subset) {
                 // TODO
+                let vertexVector=this.buildVertexVector(subset);
+                let edgeVector=this.buildEdgeVector(subset);
+                let faceVector=this.buildFaceVector(subset);
+                let vertexAdjancentEdge=this.A0.timesDense(vertexVector);
+                let vertexAdjancentFace=this.A1.timesDense(vertexAdjancentEdge);
+                let edgeAdjancentFace=this.A1.timesDense(edgeVector);
 
+                let edgeAdjancentVertex=this.A0.transpose().timesDense(edgeVector);              
+
+                let faceAdjancentVertex=(this.A1.timesSparse(this.A0)).transpose().timesDense(faceVector);
+                let faceAdjancentEdge=this.A1.transpose().timesDense(faceVector);
+                let addedFaceAdjancentVertex=(this.A1.timesSparse(this.A0)).transpose().timesDense(vertexAdjancentFace);
+                let addedFaceAdjancentEdge=this.A1.transpose().timesDense(vertexAdjancentFace);
+
+                //let vertexAdjacentVertex=edgeAdjancentVertex.timesDense(vertexAdjancentEdge);
+                //let edgeAdjancentEdge=
+                //let starVerticesIndices=new Array();                
+                subset.addVertices(this.nonZeroIndex(edgeAdjancentVertex));
+                subset.addVertices(this.nonZeroIndex(faceAdjancentVertex));
+                //subset.addVertices(this.nonZeroIndex(addedFaceAdjancentVertex));
+
+                //subset.addEdges(this.nonZeroIndex(vertexAdjancentEdge));
+                subset.addEdges(this.nonZeroIndex(faceAdjancentEdge));
+               // subset.addEdges(this.nonZeroIndex(addedFaceAdjancentEdge));
+                //subset.addFaces(this.nonZeroIndex(vertexAdjancentFace));
+                //subset.addFaces(this.nonZeroIndex(edgeAdjancentFace)); 
                 return subset; // placeholder
         }
 
@@ -183,8 +215,21 @@ class SimplicialComplexOperators {
          */
         link(subset) {
                 // TODO
+                let closureStarSet=MeshSubset.deepCopy(subset);
+                let starClosureSet=MeshSubset.deepCopy(subset);                
+                closureStarSet=this.closure(this.star(closureStarSet));
+                starClosureSet=this.star(this.closure(starClosureSet));
+                console.log(closureStarSet);
+                let linkSet=MeshSubset.deepCopy(closureStarSet);
+                linkSet.addSubset(starClosureSet);
+                linkSet.deleteSubset(starClosureSet);
+                //linkSet=linkSet.deleteSubset(starClosureSet);
 
-                return subset; // placeholder
+//                 linkSet=linkSet.deleteSubset(starClosureSet);
+                //subset=MeshSubset.deepCopy(linkSet);
+
+                console.log(linkSet);
+                return linkSet ; // placeholder
         }
 
         /** Returns true if the given subset is a subcomplex and false otherwise.
