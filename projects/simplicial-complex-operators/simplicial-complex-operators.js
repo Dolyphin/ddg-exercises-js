@@ -239,6 +239,13 @@ class SimplicialComplexOperators {
          */
         isComplex(subset) {
                 // TODO
+                let closureSet=MeshSubset.deepCopy(subset);
+                closureSet=this.closure(closureSet);
+                if (subset.equals(closureSet)) {
+                        return true;
+                }
+                else {return false;}
+                
         }
 
         /** Returns the degree if the given subset is a pure subcomplex and -1 otherwise.
@@ -248,6 +255,53 @@ class SimplicialComplexOperators {
          */
         isPureComplex(subset) {
                 // TODO
+                let vertexVector=this.buildVertexVector(subset);
+                let edgeVector=this.buildEdgeVector(subset);
+                let faceVector=this.buildFaceVector(subset);
+                let faceAdjancentVertex=(this.A1.timesSparse(this.A0)).transpose().timesDense(faceVector);
+                let edgeAdjancentVertex=this.A0.transpose().timesDense(edgeVector);                    
+//                 let vertexMatrix = SparseMatrix.diag(vertexVector);
+//                 let edgeMatrix=SparseMatrix.diag(edgeVector);
+//                 let faceMatrix=SparseMatrix.diag(faceVector);
+//                 let vertexEdgeMatrix=edgeMatrix.timesSparse(this.A0).timesSparse(vertexMatrix);
+//                 let vertexFaceMatrix=faceMatrix.timesSparse(this.A1).timesSparse(this.A0).timesSparse(vertexMatrix);
+                
+//                 let vertexAdjancentEdge=this.A0.timesDense(vertexVector);
+//                 let vertexAdjancentFace=this.A1.timesDense(vertexAdjancentEdge);
+//                 let faceAdjancentVertex=(this.A1.timesSparse(this.A0)).transpose().timesDense(faceVector);
+                if (this.isComplex(subset)) {
+                        if (faceVector.sum()!=0) {
+//                                 console.log(faceAdjancentVertex.sum());
+//                                 console.log(vertexVector.sum());
+                                for(let i=0;i<this.mesh.vertices.length;i++) {
+                                        if (vertexVector.get(i,0)!=0) {
+                                                if (faceAdjancentVertex.get(i,0)==0) {
+                                                        return -1
+                                                }        
+                                        }
+                                        if (faceAdjancentVertex.get(i,0)!=0) {
+                                                if (vertexVector.get(i,0)==0) {
+                                                        return -1
+                                                }
+                                        }
+                                }
+//                                 if (faceAdjancentVertex.sum()/2==vertexVector.sum()) {
+//                                         return 2;        
+                                                                
+                                return 2;}
+                                
+                        //maybe below there is some problem
+                        else if (edgeVector.sum()!=0) {
+                                if (edgeAdjancentVertex.sum()==vertexVector.sum()) {
+                                        return 1;
+                                }
+                                else {
+                                        return -1;
+                                }
+                        }
+                        else {return 0;}                                                                
+                }
+                else {return -1;}
         }
 
         /** Returns the boundary of a subset.
@@ -257,7 +311,37 @@ class SimplicialComplexOperators {
          */
         boundary(subset) {
                 // TODO
-
-                return subset; // placeholder
+                let boundarySet=new MeshSubset();
+                let faceVector=this.buildFaceVector(subset);
+                let edgeVector=this.buildEdgeVector(subset);
+                //只有当只在faceEdgeNumVector中只出现一次的边为边界边
+                if (this.isPureComplex(subset)==2) {
+                        let faceEdgeNumVector=this.A1.transpose().timesDense(faceVector);
+                        let boundaryEdgeVector=DenseMatrix.zeros(this.mesh.edges.length,1);
+                        for(let i=0;i<this.mesh.edges.length;i++) {
+                                if (faceEdgeNumVector.get(i,0)==1) {
+                                        boundaryEdgeVector.set(1,i,0);
+                                }
+                        }
+                        boundarySet.addEdges(this.nonZeroIndex(boundaryEdgeVector));
+                         
+                        return this.closure(boundarySet);
+                }
+                else if (this.isPureComplex(subset)==1) {
+                        let edgeVertexNumVector=this.A0.transpose().timesDense(edgeVector);
+                        let boundaryVertexVector=DenseMatrix.zeros(this.mesh.vertices.length,1);
+                        for(let j=0;j<this.mesh.vertices.length;j++) {
+                                if (edgeVertexNumVector.get(j,0)==1) {
+                                        boundaryVertexVector.set(1,j,0);
+                                }
+                        }
+                        boundarySet.addVertices(this.nonZeroIndex(boundaryVertexVector));
+                        return boundarySet;
+                }
+                else if (this.isPureComplex(subset)==0) {
+                        return boundarySet;
+                }
+                else {return boundarySet;}
+                 // placeholder
         }
 }

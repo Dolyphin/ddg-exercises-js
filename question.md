@@ -31,3 +31,6 @@ solution将indexElement()的参数去掉
 ## 实现了点的star，但是edge和face的star是什么呢？
 查一下，notes
 # Q5 Clousure是否有构造性的编法
+
+# Q: isComplex如何定义？
+A:每个simplex的face都在集合中
